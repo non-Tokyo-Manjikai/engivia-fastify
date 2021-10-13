@@ -1,0 +1,54 @@
+version: "3"
+
+services:
+  workspace:
+    # 起動するイメージを指定
+    image: node:14.17.0
+
+    container_name: engivia-workspace
+
+    # 環境変数を設定
+    environment:
+      - DEBUG=app:*
+
+    # これなんだろう？
+    tty: true
+
+    # ホスト側のポート:コンテナのポート
+    ports:
+      - '8000:8000'
+
+    #（ホスト側の./をコンテナの/appにマウント）
+    # ローカルにデータに残したくない場合は消す
+    volumes:
+      - .:/app
+
+    # 起動時のカレントフォルダを指定
+    working_dir: /app
+
+    depends_on:
+      - mysql
+
+    # 起動後に実行するコマンドを指定
+    command: npm run dev
+
+  mysql:
+    image: mysql:5.7
+
+    container_name: engivia-mysql
+
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: engivia
+      TZ: "Asia/Tokyo"
+
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+    volumes:
+      - ./docker/db/data:/var/lib/mysql
+      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./docker/db/sql:/docker-entrypoint-initdb.d
+      
+    # このポート変えない方がいいかも
+    ports:
+      - 3306:3306
