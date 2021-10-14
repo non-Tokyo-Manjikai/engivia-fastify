@@ -34,6 +34,17 @@ app.get<{
   res.send(post);
 });
 
+app.delete<{
+  Params: { id: number }
+}>(`/user/:id`, async (req, res) => {
+  const { id } = req.params;
+
+  const user_del = await prisma.user.delete({
+    where: { id: Number(id) },
+  });
+  res.send(user_del);
+})
+
 // Run the server!
 const start = async () => {
   try {
