@@ -3,7 +3,7 @@ version: "3"
 services:
   workspace:
     # 起動するイメージを指定
-    image: node:14.17.0
+    image: node:14.18.0
 
     container_name: engivia-workspace
 
@@ -11,7 +11,7 @@ services:
     environment:
       - DEBUG=app:*
 
-    # これなんだろう？
+    # コンテナを継続させる
     tty: true
 
     # ホスト側のポート:コンテナのポート
@@ -48,7 +48,7 @@ services:
       - ./docker/db/data:/var/lib/mysql
       - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
       - ./docker/db/sql:/docker-entrypoint-initdb.d
-      
+
     # このポート変えない方がいいかも
     ports:
       - 3306:3306
