@@ -1,12 +1,12 @@
-import { PrismaClient } from "@prisma/client";
-import fastify from "fastify";
+import { PrismaClient } from '@prisma/client';
+import fastify from 'fastify';
 
 const prisma = new PrismaClient();
 const app = fastify();
-const port = process.env.PORT || "3000";
+const port = process.env.PORT || '3000';
 
-app.get("/", async (req, res) => {
-  return { hello: "world!!!" };
+app.get('/', async (req, res) => {
+  return { hello: 'world!!!' };
 });
 
 app.post<{
