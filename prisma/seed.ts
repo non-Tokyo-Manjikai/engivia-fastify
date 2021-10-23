@@ -12,19 +12,19 @@ async function main() {
         id: 1,
         title: '第１回エンジビアの泉',
         scheduledStartTime: '2021-10-01T19:00:00Z',
-        liveType: 'ended',
+        status: 'ended',
       },
       {
         id: 2,
         title: '第２回エンジビアの泉',
         scheduledStartTime: '2021-10-10T12:00:00Z',
-        liveType: 'live',
+        status: 'live',
       },
       {
         id: 3,
         title: '第３回エンジビアの泉',
         scheduledStartTime: '2021-10-20T20:00:00Z',
-        liveType: 'upcoming',
+        status: 'upcoming',
       },
     ],
   });
