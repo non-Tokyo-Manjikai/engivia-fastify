@@ -2,16 +2,42 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider             = "mysql"
+  url                  = env("DATABASE_URL")
+  shadowDatabaseUrl    = env("SHADOW_DATABASE_URL")
+  referentialIntegrity = "prisma"
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id      String   @id
+  name    String
+  isAdmin Boolean  @default(false)
+  image   String
+  token   String
+  Trivia  Trivia[]
+}
+
+model Trivia {
+  id          Int       @id @default(autoincrement())
+  content     String    @db.Text
+  hee         Int?      @db.UnsignedTinyInt
+  featured    Boolean   @default(false)
+  userId      String
+  broadcastId Int
+  User        User      @relation(fields: [userId], references: [id])
+  Broadcast   Broadcast @relation(fields: [broadcastId], references: [id])
+}
+
+model Broadcast {
+  id                 Int      @id @default(autoincrement())
+  title              String
+  scheduledStartTime DateTime @db.DateTime
+  status             String   @default("upcoming")
+  archiveUrl         String?
+  Trivia             Trivia[]
 }
