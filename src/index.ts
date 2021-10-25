@@ -1,9 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import fastify from 'fastify';
+import { router } from './router';
 
-const prisma = new PrismaClient();
 const app = fastify();
-const port = process.env.PORT || '3000';
+const port = process.env.PORT || '8000';
+
+app.register(router);
 
 // ユーザー
 app.post<{
