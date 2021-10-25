@@ -1,15 +1,12 @@
-import { PrismaClient } from '@prisma/client';
 import fastify from 'fastify';
+import prismaPlugin from './plugins/prisma';
 import { router } from './router';
 
 const app = fastify();
 const port = process.env.PORT || '8000';
 
+app.register(prismaPlugin);
 app.register(router);
-
-app.get('/', async (req, res) => {
-  return { hello: 'world!!!' };
-});
 
 // Run the server!
 const start = async () => {
