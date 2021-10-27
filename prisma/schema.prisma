@@ -36,7 +36,7 @@ model Trivia {
 model Broadcast {
   id                 Int      @id @default(autoincrement())
   title              String
-  scheduledStartTime DateTime @db.DateTime
+  scheduledStartTime DateTime @db.Date
   status             String   @default("upcoming")
   archiveUrl         String?
   Trivia             Trivia[]
