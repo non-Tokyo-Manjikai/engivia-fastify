@@ -1,10 +1,11 @@
-import { PrismaClient } from '@prisma/client';
 import fastify from 'fastify';
+import prismaPlugin from './plugins/prisma';
 import { router } from './router';
 
 const app = fastify();
 const port = process.env.PORT || '8000';
 
+app.register(prismaPlugin);
 app.register(router);
 
 // ユーザー
