@@ -14,8 +14,8 @@ export async function slackController(fastify: FastifyInstance): Promise<void> {
     );
   });
 
-  // アクセストークンやIDトークンを取得
   fastify.get<{ Querystring: { code: string } }>('/token', async (req, res) => {
+    // アクセストークンやIDトークンを取得
     const result = await web.openid.connect.token({
       client_id: process.env.SLACK_CLIENT_ID || '',
       client_secret: process.env.SLACK_CLIENT_SECRET || '',
@@ -28,15 +28,27 @@ export async function slackController(fastify: FastifyInstance): Promise<void> {
     res.send(result);
 
     // id_token をデコードしてユーザー情報を取得
-    /*
     const userInfo: OpenIDConnectUserInfoResponse = jwt_decode(result.id_token);
     if (!userInfo["https://slack.com/user_id"] || !userInfo.name || !userInfo.picture) {
       res.status(400).send({ error: 'not found user_id or name or picture' });
       return;
     }
-    */
+
+    // ユーザー情報をDBに保存
+    const registerUser = await prisma.user.upsert({
+      where: { id: userInfo["https://slack.com/user_id"] },
+      create: {
+        id: userInfo["https://slack.com/user_id"],
+        name: userInfo.name,
+        image: userInfo.picture,
+        token: result.access_token
+      },
+      update: {}
+    })
+    res.send(registerUser);
   });
 
+  /*
   // アクセストークンを使ってユーザー情報を取得
   fastify.get('/userInfo', async (req, res) => {
     const token = req?.headers?.authorization?.split(" ")[1] as string;
@@ -62,4 +74,5 @@ export async function slackController(fastify: FastifyInstance): Promise<void> {
     })
     res.send(registerUser);
   });
+  */
 }
