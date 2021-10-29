@@ -4,30 +4,27 @@ import { PrismaClient } from '.prisma/client';
 // これだとprismaインスタンスが複数作られてしまうみたい(このようなファイルがたくさんある場合)
 const prisma = new PrismaClient();
 
-export const updateUserInfo = async ( params: {
+export const updateUserInfo = async (params: {
   token: string;
   name: string;
   image: string;
-} ) =>
-{
-  if ( !params.token )
-  {
-    throw new Error( 'Specify id token' );
+}) => {
+  if (!params.token) {
+    throw new Error('Specify id token');
   }
 
-  try
-  {
-    const resultUpdateBroadcast = await prisma.user.update( {
-      where: { id: params.token },
+  try {
+    const resultUpdateBroadcast = await prisma.user.update({
+      where: { token: params.token },
       data: {
         name: params.name,
         image: params.image,
       }
-    } );
+    });
 
     return resultUpdateBroadcast;
   } catch
   {
-    throw new Error( '' );
+    throw new Error('');
   }
 };
