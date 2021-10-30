@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "dev": "ts-node-dev --poll --respawn --transpile-only --no-deps --exit-child src/index.ts"
+    "dev": "ts-node-dev --transpile-only --exit-child src/index.ts"
   },
   "dependencies": {
-    "@prisma/client": "3.2.1",
+    "@prisma/client": "^3.3.0",
     "@slack/web-api": "^6.4.0",
     "fastify": "3.22.0",
     "fastify-plugin": "^3.0.0",
@@ -18,7 +18,7 @@
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.0",
     "prettier": "^2.4.1",
-    "prisma": "3.2.1",
+    "prisma": "^3.3.0",
     "ts-node": "10.3.0",
     "ts-node-dev": "^1.1.8",
     "typescript": "4.4.3"
