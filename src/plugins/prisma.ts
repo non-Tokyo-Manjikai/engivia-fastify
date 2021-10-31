@@ -3,6 +3,7 @@ import { FastifyPluginAsync } from 'fastify'
 import { PrismaClient } from '@prisma/client'
 
 // Use TypeScript module augmentation to declare the type of server.prisma to be PrismaClient
+// TypeScriptモジュール拡張を使用して、server.prismaの型をPrismaClientと宣言します。
 declare module 'fastify' {
   interface FastifyInstance {
     prisma: PrismaClient
