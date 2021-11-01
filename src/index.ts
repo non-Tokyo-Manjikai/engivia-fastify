@@ -1,61 +1,22 @@
-import fastify from 'fastify';
-import prismaPlugin from './plugins/prisma';
-import { router } from './router';
+import Fastify from "fastify";
+import { app } from "./app";
 
-const app = fastify();
-const port = process.env.PORT || '8000';
+const FASTIFY_PORT = Number(process.env.PORT) || 8080;
 
-app.register( prismaPlugin );
-app.register( router );
+async function start() {
+  const fastify = Fastify({
+    logger: {
+      prettyPrint: true,
+      level: "info",
+    },
+  });
+  fastify.register(app);
 
-/* =============== */
-/* 一旦コメントアウト */
-/* =============== */
+  await fastify.listen(FASTIFY_PORT, "0.0.0.0");
+  fastify.log.info(`Fastify server running on port ${FASTIFY_PORT} in ${process.env.NODE_ENV || "development"}`);
+}
 
-// // ユーザー
-// app.post<{
-//   Body: { id: string; name: string; image: string; token: string };
-// }>( `/signup`, async ( req, res ) =>
-// {
-//   const { id, name, image, token } = req.body;
-//   const result = await prisma.user.create( {
-//     data: {
-//       id, // slack認証
-//       name, // slackのユーザー名
-//       // isAdmin: false,
-//       image,
-//       token, // slack認証
-//     },
-//   } );
-//   res.send( result );
-// } );
-// // 放送リスト取得
-// app.get( `/broadcastList`, async ( req, res ) =>
-// {
-//   const user_del = await prisma.broadcast.findMany( {
-//     select: {
-//       id: true,
-//       title: true,
-//       scheduledStartTime: true,
-//       status: true,
-//       _count: true,
-//     },
-//   } );
-//   res.send( user_del );
-// } );
-
-// Run the server!
-const start = async () =>
-{
-  try
-  {
-    await app.listen( port, '0.0.0.0' );
-    console.log( `🚀 Server ready at: http://localhost:${ port }` );
-  } catch ( err )
-  {
-    app.log.error( err );
-    process.exit( 1 );
-  }
-};
-
-start();
+start().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

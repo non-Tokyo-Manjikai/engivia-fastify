@@ -1,12 +1,10 @@
-import { FastifyInstance } from "fastify";
 import { OpenIDConnectUserInfoResponse, WebClient } from "@slack/web-api";
-import { PrismaClient } from ".prisma/client";
+import { FastifyPluginAsync } from "fastify";
 import jwt_decode from "jwt-decode";
 
 const web = new WebClient();
-const prisma = new PrismaClient();
 
-export async function slackController(fastify: FastifyInstance): Promise<void> {
+const slack: FastifyPluginAsync = async (fastify): Promise<void> => {
   // Slack認証画面にリダイレクト
   fastify.get('/signin', async (req, res) => {
     res.redirect(
@@ -35,7 +33,7 @@ export async function slackController(fastify: FastifyInstance): Promise<void> {
     }
 
     // ユーザー情報をDBに保存
-    const registerUser = await prisma.user.upsert({
+    const registerUser = await fastify.prisma.user.upsert({
       where: { id: userInfo["https://slack.com/user_id"] },
       create: {
         id: userInfo["https://slack.com/user_id"],
@@ -47,32 +45,6 @@ export async function slackController(fastify: FastifyInstance): Promise<void> {
     })
     res.send(registerUser);
   });
-
-  /*
-  // アクセストークンを使ってユーザー情報を取得
-  fastify.get('/userInfo', async (req, res) => {
-    const token = req?.headers?.authorization?.split(" ")[1] as string;
-    // アクセストークンやIDトークンを取得
-    const userInfo = await web.openid.connect.userInfo({
-      token,
-    });
-    if (!userInfo["https://slack.com/user_id"] || !userInfo.name || !userInfo.picture) {
-      res.status(400).send({ error: 'not found user_id or name or picture' });
-      return;
-    }
-
-    // ユーザー情報をDBに保存
-    const registerUser = await prisma.user.upsert({
-      where: { id: userInfo["https://slack.com/user_id"] },
-      create: {
-        id: userInfo["https://slack.com/user_id"],
-        name: userInfo.name,
-        image: userInfo.picture,
-        token
-      },
-      update: {}
-    })
-    res.send(registerUser);
-  });
-  */
 }
+
+export default slack;

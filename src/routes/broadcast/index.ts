@@ -1,15 +1,12 @@
-import { FastifyInstance } from 'fastify';
-import { getBroadcastInfo } from '../service/broadcast/getBroadcastInfo';
-import { createBroadcastInfo } from '../service/broadcast/createBroadcastInfo';
-import { updateBroadcastInfo } from '../service/broadcast/updateBroadcastInfo'
-import { deleteBroadcastInfo } from '../service/broadcast/deleteBroadcastInfo'
+import { FastifyPluginAsync } from "fastify";
+import broadcastPlugin from "./service";
 
-type postBody = {
+type PostBody = {
   title: string;
   scheduledStartTime: string;
 };
 
-type putBody = {
+type PutBody = {
   id: number;
   title?: string;
   scheduledStartTime?: string;
@@ -17,26 +14,25 @@ type putBody = {
   archiveUrl?: string;
 }
 
-export async function broadcastController(
-  fastify: FastifyInstance,
-): Promise<void> {
+const broadcast: FastifyPluginAsync = async (fastify): Promise<void> => {
+  // Broadcastプラグインを読み込む！
+  await fastify.register(broadcastPlugin);
   // 放送情報取得
   fastify.get<{
     Params: { id: number };
   }>(`/:id`, async (req, res) => {
     const { id } = req.params;
-    const token = req?.headers?.authorization?.split(' ')[1] as string;
-
-    const resultBroadcastInfo = await getBroadcastInfo({
+    const token = req?.headers?.authorization?.split(" ")[1] as string;
+    const resultBroadcastInfo = await fastify.getBroadcast({
       id: Number(id),
       token,
     });
     res.send(resultBroadcastInfo);
   });
 
-  fastify.post<{ Body: postBody }>(`/`, async (req, res) => {
+  fastify.post<{ Body: PostBody }>(`/`, async (req, res) => {
     const token = req?.headers?.authorization?.split(' ')[1] as string;
-    const resultCreateBroadcastInfo = await createBroadcastInfo({
+    const resultCreateBroadcastInfo = await fastify.createBroadcast({
       title: req.body.title,
       scheduledStartTime: req.body.scheduledStartTime,
       token,
@@ -44,9 +40,9 @@ export async function broadcastController(
     res.send(resultCreateBroadcastInfo);
   });
 
-  fastify.put<{ Body: putBody }>(`/`, async (req, res) => {
+  fastify.put<{ Body: PutBody }>(`/`, async (req, res) => {
     const token = req?.headers?.authorization?.split(' ')[1] as string;
-    const resultUpdateBroadcastInfo = await updateBroadcastInfo({
+    const resultUpdateBroadcastInfo = await fastify.updateBroadcast({
       ...req.body,
       token,
     });
@@ -58,11 +54,12 @@ export async function broadcastController(
   }>(`/:id`, async (req, res) => {
     const { id } = req.params;
     const token = req?.headers?.authorization?.split(' ')[1] as string;
-
-    const resultDeleteBroadcastInfo = await deleteBroadcastInfo({
+    const resultDeleteBroadcastInfo = await fastify.deleteBroadcast({
       id: Number(id),
       token,
     });
     res.send(resultDeleteBroadcastInfo);
   });
 }
+
+export default broadcast;
