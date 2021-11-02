@@ -1,0 +1,3 @@
+- POST, PUT が Body に token を含める
+- GET, DELETE が Header に token を含める
+- req.body は 分割代入する
