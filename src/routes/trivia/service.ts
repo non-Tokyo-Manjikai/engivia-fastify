@@ -129,10 +129,6 @@ const triviaPlugin: FastifyPluginAsync = async (fastify) => {
     if (!resultUserInfo) {
       throw new Error('not found user trivia');
     }
-    // トリビアが存在しない場合エラー
-    if (resultUserInfo.Trivia.length === 0) {
-      throw new Error('not found trivia');
-    }
 
     // ユーザーが管理者の場合、他のユーザーが投稿したトリビアを削除できる
     if (resultUserInfo.isAdmin === true) {
@@ -140,6 +136,11 @@ const triviaPlugin: FastifyPluginAsync = async (fastify) => {
         where: { id: params.id },
       });
       return resultDeleted;
+    }
+
+    // トリビアが存在しない場合エラー
+    if (resultUserInfo.Trivia.length === 0) {
+      throw new Error('not found trivia');
     }
 
     // ユーザーがトリビアを投稿していたら、そのユーザーがトリビアを削除できる
