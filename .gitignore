@@ -4,3 +4,6 @@ dist/
 docker
 .devcontainer
 gcs-token.json
+
+# いろいろ試す用ファイル
+demo.ts
