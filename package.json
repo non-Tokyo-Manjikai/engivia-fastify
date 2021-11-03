@@ -11,6 +11,7 @@
     "@slack/web-api": "^6.4.0",
     "fastify": "3.22.0",
     "fastify-autoload": "^3.9.0",
+    "fastify-cors": "^6.0.2",
     "fastify-plugin": "^3.0.0",
     "fluent-json-schema": "^3.0.1",
     "jwt-decode": "^3.1.2",
