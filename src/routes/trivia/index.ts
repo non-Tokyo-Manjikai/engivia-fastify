@@ -64,7 +64,7 @@ const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
 
   fastify.delete<{ Params: { id: number } }>(
     `/:id`,
-    { schema: { querystring: paramsDeleteTrivia } },
+    { schema: { params: paramsDeleteTrivia } },
     async (req, res) => {
       const { id } = req.params;
       const token = req?.headers?.authorization?.split(' ')[1] as string;
