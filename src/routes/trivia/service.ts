@@ -4,7 +4,9 @@ import fp from 'fastify-plugin';
 
 interface UpdateParams {
   id: number;
-  content: string;
+  content?: string;
+  hee?: number;
+  featured?: boolean;
   token: string;
 }
 
@@ -95,6 +97,8 @@ const triviaPlugin: FastifyPluginAsync = async (fastify) => {
         where: { id: params.id },
         data: {
           content: params.content,
+          hee: params.hee,
+          featured: params.featured
         },
       });
       return resultUpdated;
@@ -109,6 +113,8 @@ const triviaPlugin: FastifyPluginAsync = async (fastify) => {
       where: { id: params.id },
       data: {
         content: params.content,
+        hee: params.hee,
+        featured: params.featured
       },
     });
     return resultUpdated;
