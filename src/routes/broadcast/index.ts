@@ -49,6 +49,7 @@ const broadcast: FastifyPluginAsync = async (fastify): Promise<void> => {
     res.send(resultUpdateBroadcastInfo);
   });
 
+  // コメント
   fastify.delete<{
     Params: { id: number };
   }>(`/:id`, async (req, res) => {
