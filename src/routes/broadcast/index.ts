@@ -17,6 +17,13 @@ type PutBody = {
 const broadcast: FastifyPluginAsync = async (fastify): Promise<void> => {
   // Broadcastプラグインを読み込む！
   await fastify.register(broadcastPlugin);
+
+  // 放送リスト取得機能
+  fastify.get('/', async (req, res) => {
+    const resultBroadcastList = await fastify.getBroadcastList();
+    res.send(resultBroadcastList);
+  })
+
   // 放送情報取得
   fastify.get<{
     Params: { id: number };
@@ -30,6 +37,7 @@ const broadcast: FastifyPluginAsync = async (fastify): Promise<void> => {
     res.send(resultBroadcastInfo);
   });
 
+  // 放送作成機能
   fastify.post<{ Body: PostBody }>(`/`, async (req, res) => {
     const token = req?.headers?.authorization?.split(' ')[1] as string;
     const resultCreateBroadcastInfo = await fastify.createBroadcast({
@@ -40,6 +48,7 @@ const broadcast: FastifyPluginAsync = async (fastify): Promise<void> => {
     res.send(resultCreateBroadcastInfo);
   });
 
+  // 放送情報更新機能
   fastify.put<{ Body: PutBody }>(`/`, async (req, res) => {
     const token = req?.headers?.authorization?.split(' ')[1] as string;
     const resultUpdateBroadcastInfo = await fastify.updateBroadcast({
@@ -49,7 +58,7 @@ const broadcast: FastifyPluginAsync = async (fastify): Promise<void> => {
     res.send(resultUpdateBroadcastInfo);
   });
 
-  // コメント
+  // 放送削除機能
   fastify.delete<{
     Params: { id: number };
   }>(`/:id`, async (req, res) => {
