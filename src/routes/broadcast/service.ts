@@ -18,7 +18,7 @@ interface UpdateParams {
   title?: string;
   scheduledStartTime?: string;
   status?: string;
-  archiveUrl?: string
+  archiveUrl?: string;
   token: string;
 }
 
@@ -31,28 +31,50 @@ declare module 'fastify' {
   interface FastifyInstance {
     getBroadcast: {
       // eslint-disable-next-line no-unused-vars
-      (params: GetParams): Promise<Broadcast & {
-        Trivia: (Trivia & {
-          User: User;
-        })[] | undefined;
-      }>
-    }
+      (params: GetParams): Promise<
+        Broadcast & {
+          Trivia:
+            | (Trivia & {
+                User: User;
+              })[]
+            | undefined;
+        }
+      >;
+    };
+    getBroadcastList: {
+      // eslint-disable-next-line no-unused-vars
+      (): Promise<Broadcast>;
+    };
     createBroadcast: {
       // eslint-disable-next-line no-unused-vars
-      (params: CreateParams): Promise<Broadcast>
-    }
+      (params: CreateParams): Promise<Broadcast>;
+    };
     updateBroadcast: {
       // eslint-disable-next-line no-unused-vars
-      (params: UpdateParams): Promise<Broadcast>
-    }
+      (params: UpdateParams): Promise<Broadcast>;
+    };
     deleteBroadcast: {
       // eslint-disable-next-line no-unused-vars
-      (params: DeleteParams): Promise<Broadcast>
-    }
+      (params: DeleteParams): Promise<Broadcast>;
+    };
   }
 }
 
 const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
+  // ---------------------- 放送リスト取得 --------------------- //
+  fastify.decorate('getBroadcastList', async () => {
+    const resultBroadcastList = await fastify.prisma.broadcast.findMany({
+      select: {
+        id: true,
+        title: true,
+        scheduledStartTime: true,
+        status: true,
+        _count: { select: { Trivia: true } },
+      },
+    });
+    return resultBroadcastList;
+  });
+
   // --------------------- 放送情報取得 --------------------- //
   fastify.decorate('getBroadcast', async (params: GetParams) => {
     if (!params.id) {
@@ -105,7 +127,7 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.decorate('createBroadcast', async (params: CreateParams) => {
     // ユーザー情報取得
     const resultUserInfo = await fastify.prisma.user.findUnique({
-      where: { token: params.token }
+      where: { token: params.token },
     });
 
     // 管理者の場合
@@ -113,8 +135,8 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
       const resultCreateBroadcast = await fastify.prisma.broadcast.create({
         data: {
           title: params.title,
-          scheduledStartTime: params.scheduledStartTime
-        }
+          scheduledStartTime: params.scheduledStartTime,
+        },
       });
       return resultCreateBroadcast;
     }
@@ -127,7 +149,7 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.decorate('updateBroadcast', async (params: UpdateParams) => {
     // ユーザー情報取得
     const resultUserInfo = await fastify.prisma.user.findUnique({
-      where: { token: params.token }
+      where: { token: params.token },
     });
 
     // 管理者の場合
@@ -138,21 +160,21 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
           title: params.title,
           scheduledStartTime: params.scheduledStartTime,
           status: params.status,
-          archiveUrl: params.archiveUrl
-        }
+          archiveUrl: params.archiveUrl,
+        },
       });
       return resultUpdateBroadcast;
     }
 
     // 管理者ではない場合
     throw new Error('not admin');
-  })
+  });
 
   // ---------------------- 放送削除 --------------------- //
   fastify.decorate('deleteBroadcast', async (params: DeleteParams) => {
     // ユーザー情報取得
     const resultUserInfo = await fastify.prisma.user.findUnique({
-      where: { token: params.token }
+      where: { token: params.token },
     });
 
     // 管理者の場合
@@ -161,14 +183,14 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
         where: { id: params.id },
         include: {
           Trivia: { where: { broadcastId: params.id } },
-        }
+        },
       });
       return resultDeleteBroadcast;
     }
 
     // 管理者ではない場合
     throw new Error('not admin');
-  })
-}
+  });
+};
 
 export default fp(broadcastPlugin);
