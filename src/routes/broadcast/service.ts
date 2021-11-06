@@ -1,4 +1,4 @@
-import { Broadcast, Trivia, User } from '.prisma/client';
+import { Broadcast, Prisma, Trivia, User } from '.prisma/client';
 import { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
 
@@ -80,27 +80,6 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
     if (!params.id) {
       throw new Error('Specify id or token');
     }
-    // 放送情報取得
-    const resultBroadcast = await fastify.prisma.broadcast.findUnique({
-      where: { id: params.id },
-      include: {
-        Trivia: {
-          include: {
-            User: true,
-          },
-        },
-      },
-    });
-    if (!resultBroadcast) {
-      throw new Error('not found Broadcast');
-    }
-
-    if (!params.token) {
-      return resultBroadcast.status === 'ended'
-        ? resultBroadcast
-        : { ...resultBroadcast, Trivia: undefined };
-    }
-
     // ユーザー情報を取得
     const resultUserInfo = await fastify.prisma.user.findUnique({
       where: { token: params.token },
@@ -109,18 +88,31 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
       throw new Error('not found userInfo');
     }
 
-    // ユーザーが管理者の場合
-    if (resultUserInfo.isAdmin === true) {
-      // 放送情報を取得
-      return resultBroadcast;
-    }
+    // ユーザーが管理者でない場合、ユーザーの投稿したトリビアのみ取得するwhere文が作成される
+    const whereTrivia: Prisma.TriviaWhereInput | undefined =
+      resultUserInfo.isAdmin === false
+        ? { userId: resultUserInfo.id }
+        : undefined;
 
-    // 管理者でない場合
-    if (resultUserInfo.isAdmin === false) {
-      return resultBroadcast.status === 'ended'
-        ? resultBroadcast
-        : { ...resultBroadcast, Trivia: undefined };
-    }
+    // 放送情報を取得
+    const resultBroadcast = await fastify.prisma.broadcast.findUnique({
+      where: { id: params.id },
+      include: {
+        Trivia: {
+          where: whereTrivia,
+          include: {
+            User: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              }
+            },
+          },
+        },
+      },
+    });
+    return resultBroadcast;
   });
 
   // ---------------------- 放送作成 --------------------- //
