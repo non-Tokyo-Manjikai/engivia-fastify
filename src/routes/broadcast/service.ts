@@ -91,7 +91,12 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
     // ユーザーが管理者でない場合、ユーザーの投稿したトリビアのみ取得するwhere文が作成される
     const whereTrivia: Prisma.TriviaWhereInput | undefined =
       resultUserInfo.isAdmin === false
-        ? { userId: resultUserInfo.id }
+        ? {
+            OR: [
+              { Broadcast: { status: 'ended' } },
+              { userId: resultUserInfo.id },
+            ],
+          }
         : undefined;
 
     // 放送情報を取得
@@ -106,7 +111,7 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
                 id: true,
                 name: true,
                 image: true,
-              }
+              },
             },
           },
         },
