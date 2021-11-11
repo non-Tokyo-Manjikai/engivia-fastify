@@ -4,7 +4,7 @@ import fp from 'fastify-plugin';
 
 interface GetParams {
   id: number;
-  token?: string;
+  token: string;
 }
 
 interface CreateParams {
@@ -77,8 +77,8 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
 
   // --------------------- 放送情報取得 --------------------- //
   fastify.decorate('getBroadcast', async (params: GetParams) => {
-    if (!params.id) {
-      throw new Error('Specify id or token');
+    if (!params.id || !params.token) {
+      throw new Error('Specify id and token');
     }
     // ユーザー情報を取得
     const resultUserInfo = await fastify.prisma.user.findUnique({
@@ -122,10 +122,17 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
 
   // ---------------------- 放送作成 --------------------- //
   fastify.decorate('createBroadcast', async (params: CreateParams) => {
+    if (!params.token) {
+      throw new Error('Specify token');
+    }
     // ユーザー情報取得
     const resultUserInfo = await fastify.prisma.user.findUnique({
       where: { token: params.token },
     });
+
+    if (!resultUserInfo) {
+      throw new Error('Invalid token');
+    }
 
     // 管理者の場合
     if (resultUserInfo?.isAdmin === true) {
@@ -144,6 +151,9 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
 
   // ---------------------- 放送情報更新 --------------------- //
   fastify.decorate('updateBroadcast', async (params: UpdateParams) => {
+    if (!params.token) {
+      throw new Error('Specify token');
+    }
     // ユーザー情報取得
     const resultUserInfo = await fastify.prisma.user.findUnique({
       where: { token: params.token },
@@ -169,6 +179,9 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
 
   // ---------------------- 放送削除 --------------------- //
   fastify.decorate('deleteBroadcast', async (params: DeleteParams) => {
+    if (!params.token) {
+      throw new Error('Specify token');
+    }
     // ユーザー情報取得
     const resultUserInfo = await fastify.prisma.user.findUnique({
       where: { token: params.token },
@@ -176,13 +189,14 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
 
     // 管理者の場合
     if (resultUserInfo?.isAdmin === true) {
-      const resultDeleteBroadcast = await fastify.prisma.broadcast.delete({
+      const deleteBroadcast = fastify.prisma.broadcast.delete({
         where: { id: params.id },
-        include: {
-          Trivia: { where: { broadcastId: params.id } },
-        },
       });
-      return resultDeleteBroadcast;
+      const deleteTrivia = fastify.prisma.trivia.deleteMany({
+        where: { broadcastId: params.id }
+      });
+      const result = await fastify.prisma.$transaction([deleteTrivia, deleteBroadcast]);
+      return result;
     }
 
     // 管理者ではない場合
