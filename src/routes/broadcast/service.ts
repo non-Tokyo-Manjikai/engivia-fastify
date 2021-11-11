@@ -178,7 +178,7 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
   });
 
   // ---------------------- 放送削除 --------------------- //
-  fastify.decorate('deleteBroadcast', async (params: DeleteParams) => {
+  fastify.decorate('deleteBroadcast', async (params: DeleteParams): Promise<Broadcast> => {
     if (!params.token) {
       throw new Error('Specify token');
     }
@@ -196,7 +196,7 @@ const broadcastPlugin: FastifyPluginAsync = async (fastify) => {
         where: { broadcastId: params.id }
       });
       const result = await fastify.prisma.$transaction([deleteTrivia, deleteBroadcast]);
-      return result;
+      return result[1];
     }
 
     // 管理者ではない場合
