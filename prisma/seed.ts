@@ -11,19 +11,19 @@ async function main() {
       {
         id: 1,
         title: '第１回エンジビアの泉',
-        scheduledStartTime: '2021-10-01T19:00:00Z',
+        scheduledStartTime: '2021-10-01T00:00:00Z',
         status: 'ended',
       },
       {
         id: 2,
         title: '第２回エンジビアの泉',
-        scheduledStartTime: '2021-10-10T12:00:00Z',
+        scheduledStartTime: '2021-10-10T00:00:00Z',
         status: 'live',
       },
       {
         id: 3,
         title: '第３回エンジビアの泉',
-        scheduledStartTime: '2021-10-20T20:00:00Z',
+        scheduledStartTime: '2021-10-20T00:00:00Z',
         status: 'upcoming',
       },
     ],
@@ -101,11 +101,22 @@ async function main() {
     },
   });
 
+  const createAdmin = prisma.user.create({
+    data: {
+      id: 'admin1',
+      name: '管理者１',
+      image: sampleImage,
+      token: 'admin-token1',
+      isAdmin: true
+    }
+  });
+
   await prisma.$transaction([
     createManyBroadcast,
     createUser1,
     createUser2,
     createUser3,
+    createAdmin
   ]);
 }
 
