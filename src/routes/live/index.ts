@@ -10,7 +10,6 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
       // console.info('--- ユーザー受信 ---');
       // console.info(socket.handshake.query.id);
       const sockets = await fastify.io.fetchSockets();
-
       const joiningUsers = sockets.map((sock: Socket) => {
         return {
           ...sock.handshake,
@@ -24,11 +23,11 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
         //   heeCount: 0,
         // };
       });
-      await socket.emit('user_get_all_user', joiningUsers);
+      await fastify.io.emit('user_get_all_user', joiningUsers);
 
-      /* ------- auther ------- */
+      /* ------- admin ------- */
       // 管理者がタイトルコールした時、エンジビア情報を受け取る
-      socket.on('auther_post_title_call', (data) => {
+      socket.on('admin_post_title_call', (data) => {
         // console.info('--- タイトルコール受信 ---');
         // console.info(data);
 
@@ -43,7 +42,7 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
         });
       });
 
-      socket.on('post_auther_wait_title_call', () => {
+      socket.on('post_admin_wait_title_call', () => {
         // console.info('--- タイトルコール待ち受け受信 ---');
         // 受け取ったエンジビア情報をユーザーに送信
         socket.emit('user_get_title_call', {});
