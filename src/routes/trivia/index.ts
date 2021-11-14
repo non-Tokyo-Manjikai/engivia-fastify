@@ -13,7 +13,6 @@ type PostBody = {
 };
 
 type PutBody = {
-  id: number;
   content?: string;
   hee?: number;
   featured?: boolean;
@@ -42,17 +41,18 @@ const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
     },
   );
 
-  fastify.put<{ Body: PutBody }>(
-    `/`,
+  fastify.put<{ Params: { id: number }, Body: PutBody }>(
+    `/:id`,
     {
       schema: {
         body: bodyPutTriviaSchema,
       },
     },
     async (req, res) => {
-      const { id, content, hee, featured, token } = req.body;
+      const { id } = req.params;
+      const { content, hee, featured, token } = req.body;
       const resultUpdateBroadcastInfo = await fastify.updateTrivia({
-        id,
+        id: Number(id),
         hee,
         content,
         featured,
