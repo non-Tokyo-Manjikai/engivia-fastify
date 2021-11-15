@@ -25,7 +25,7 @@ export const deleteUserResponse = Type.Object({
 export const userPutBodySchema = Type.Object({
   name: Type.Optional(Type.String({ maxLength: 21 })),
   image: Type.Optional(Type.String({ format: 'uri' })),
-  base64: Type.Optional(Type.String()),
+  base64Image: Type.Optional(Type.String()),
   token: Type.String()
 });
 
