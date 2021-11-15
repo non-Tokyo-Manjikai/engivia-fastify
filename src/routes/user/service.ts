@@ -72,6 +72,10 @@ const userPlugin: FastifyPluginAsync = async (fastify) => {
         throw new Error(`Specify id`);
       }
 
+      // 保存されている画像を削除
+      const file = storage.bucket('users_icon').file(`${params.id}.png`);
+      await file.delete({ ignoreNotFound: true });
+
       // ユーザー情報とユーザーが投稿したトリビアを全て削除
       const deleteTrivia = fastify.prisma.trivia.deleteMany({
         where: { userId: params.id },
