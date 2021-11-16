@@ -91,7 +91,7 @@ const triviaPlugin: FastifyPluginAsync = async (fastify) => {
       throw new Error('not found user');
     }
 
-    // ユーザーが管理者の場合、他のユーザーが投稿したトリビアを変更できる
+    // ユーザーが管理者の場合、他のユーザーが投稿したトリビアの内容とへぇカウント、フィーチャーを変更できる
     if (resultUserInfo.isAdmin === true) {
       const resultUpdated = await fastify.prisma.trivia.update({
         where: { id: params.id },
@@ -109,12 +109,11 @@ const triviaPlugin: FastifyPluginAsync = async (fastify) => {
       throw new Error('Cannot update trivia for other users');
     }
 
+    // ユーザーの場合、トリビアの内容のみ変更できる
     const resultUpdated = await fastify.prisma.trivia.update({
       where: { id: params.id },
       data: {
-        content: params.content,
-        hee: params.hee,
-        featured: params.featured
+        content: params.content
       },
     });
     return resultUpdated;
