@@ -102,12 +102,12 @@ const userPlugin: FastifyPluginAsync = async (fastify) => {
     if (imageBuffer.length > 5000000) {
       throw new Error('Image files larger than 5MB cannot be uploaded.');
     }
-    console.log('Byte length: ' + imageBuffer.length);
+    fastify.log.info('Byte length: ' + imageBuffer.length);
 
     // Cloud Storage に画像をアップロード
     const file = storage.bucket('users_icon').file(`${params.id}.png`);
     await file.save(imageBuffer).catch((e) => {
-      console.error(e);
+      fastify.log.error(e);
       throw new Error('upload failure');
     });
     return `https://storage.googleapis.com/users_icon/${params.id}.png`;
