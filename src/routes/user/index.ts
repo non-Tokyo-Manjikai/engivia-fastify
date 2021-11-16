@@ -1,45 +1,14 @@
 import { FastifyPluginAsync } from 'fastify';
 import userPlugin from './service';
 import {
-  UserInfo,
   userPutBodySchema,
-  getUserResponse,
+  userResponse,
   updateUserResponse,
-  deleteUserResponse,
   UserPutBody,
 } from './schema';
 
-declare module 'fastify' {
-  interface FastifyRequest {
-    userInfo: UserInfo;
-  }
-}
-
 const user: FastifyPluginAsync = async (fastify): Promise<void> => {
   await fastify.register(userPlugin);
-  fastify.decorateRequest('userInfo', null);
-
-  fastify.addHook<{ Body: { token?: string } }>(
-    'preHandler',
-    async (req, reply, done) => {
-      const token = req.body?.token || req.headers.authorization?.split(' ')[1];
-      if (!token) {
-        reply.code(403);
-        done(new Error('Specify token'));
-      }
-      const userInfo = await fastify.prisma.user.findUnique({
-        where: { token },
-        select: { id: true, name: true, isAdmin: true, image: true },
-      });
-      if (userInfo) {
-        req.userInfo = userInfo;
-        done();
-      } else {
-        reply.code(403);
-        done(new Error('Invalid token'));
-      }
-    },
-  );
 
   // ユーザー情報取得(bearer tokenで取得)
   fastify.get(
@@ -47,7 +16,7 @@ const user: FastifyPluginAsync = async (fastify): Promise<void> => {
     {
       schema: {
         response: {
-          '200': getUserResponse,
+          '200': userResponse,
         },
       },
     },
@@ -92,7 +61,7 @@ const user: FastifyPluginAsync = async (fastify): Promise<void> => {
     `/`,
     {
       schema: {
-        response: { '200': deleteUserResponse },
+        response: { '200': userResponse },
       },
     },
     async (req, res) => {
