@@ -146,6 +146,11 @@
   resolved "https://registry.npmjs.org/@prisma/engines/-/engines-3.3.0-30.33838b0f78f1fe9052cf9a00e9761c9dc097a63c.tgz"
   integrity sha512-T3nEnRWmoneNZJPd9IBR29G8ZDUjNelA8+cG5y8/lh6vySm6ryWSNxj1s377U9YzFYyZmXiA9vK1iyxMoRff/g==
 
+"@sinclair/typebox@^0.20.5":
+  version "0.20.5"
+  resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.20.5.tgz#d5828bbb8237876d7937dd229e3dac71d1220771"
+  integrity sha512-WNiVFcS1rdz5KyEutpl3Wmp/AwSQHBUFTyJz7KqMLkpLhOXCj1dnvMytBM6uMS5OTwhwwq877T7EC4vDGrX5Eg==
+
 "@slack/logger@^3.0.0":
   version "3.0.0"
   resolved "https://registry.npmjs.org/@slack/logger/-/logger-3.0.0.tgz"

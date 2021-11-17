@@ -9,6 +9,7 @@ async function start() {
       prettyPrint: true,
       level: "info",
     },
+    bodyLimit: 1048576 * 5 // 5MiB
   });
   fastify.register(app);
 
