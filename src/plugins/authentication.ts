@@ -15,10 +15,15 @@ declare module 'fastify' {
 const authenticationPlugin: FastifyPluginAsync = fp(async (fastify) => {
   fastify.decorateRequest('userInfo', null);
   fastify.addHook(`preValidation`, async (req, reply) => {
-    // 放送一覧を取得する時は、認証はいらない
+    // 放送一覧を取得する時は、事前に認証処理は必要ない
     if (req.url === '/broadcast' && req.method === 'GET') return;
+    
+    // Slack認証をする時は、事前に認証処理は必要ない
+    const slackUrlRegexp = /\/slack\/[^/]+$/;
+    if (slackUrlRegexp.test(req.url)) return;
 
     const token = req.headers.authorization?.split(' ')[1];
+
     if (!token) {
       reply.code(403);
       throw new Error('Specify token');
