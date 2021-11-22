@@ -15,6 +15,9 @@ export const broadcastPreHandlerPlugin: FastifyPluginAsync = fp(async (fastify) 
         throw new Error('Only admin can access');
       }
 
+      // 放送を作成するとき、放送が存在するかの事前チェックしない
+      if (req.method === 'POST') return;
+      
       // 放送が存在するか事前チェックする
       const resultBroadcast = await fastify.getBroadcast({
         id: Number(req.params.id),
