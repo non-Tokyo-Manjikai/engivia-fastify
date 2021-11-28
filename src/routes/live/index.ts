@@ -7,32 +7,28 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
   fastify.ready().then(() => {
     // 接続状態
     fastify.io.on('connection', async (socket: Socket) => {
-      // console.info('--- ユーザー受信 ---');
-      // console.info(socket.handshake.query.id);
+      // 初期化
+      socket.data.userId = socket.handshake.query.id;
+      socket.data.name = socket.handshake.query.name;
+      socket.data.image = socket.handshake.query.image;
+      socket.data.heeCount = 0;
+
       const sockets = await fastify.io.fetchSockets();
       const joiningUsers = sockets.map((sock: Socket) => {
         return {
-          ...sock.handshake,
-          soketId: socket.id,
-          heeCount: 0,
+          id: sock.data.userId,
+          name: sock.data.name,
+          image: sock.data.image,
+          heeCount: sock.data.heeCount,
         };
-        // return {
-        //   id: sock.handshake.query.id,
-        //   name: sock.handshake.query.name,
-        //   image: sock.handshake.query.image,
-        //   heeCount: 0,
-        // };
       });
-      await fastify.io.emit('user_get_all_user', joiningUsers);
+      await fastify.io.emit('get_connect_user', joiningUsers);
 
-      /* ------- admin ------- */
       // 管理者がタイトルコールした時、エンジビア情報を受け取る
-      socket.on('admin_post_title_call', (data) => {
-        // console.info('--- タイトルコール受信 ---');
-        // console.info(data);
-
+      socket.on('post_title_call', (data) => {
+        console.info(data);
         // 受け取ったエンジビア情報をユーザーに送信
-        socket.emit('user_get_title_call', {
+        fastify.io.emit('get_title_call', {
           engivia: {
             id: data.query.id,
             name: data.query.name,
@@ -42,22 +38,33 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
         });
       });
 
-      socket.on('post_admin_wait_title_call', () => {
-        // console.info('--- タイトルコール待ち受け受信 ---');
+      socket.on('post_wait_engivia', () => {
         // 受け取ったエンジビア情報をユーザーに送信
-        socket.emit('user_get_title_call', {});
+        fastify.io.emit('get_wait_engivia');
       });
 
-      /* ------- user ------- */
       // ユーザーのへぇリクエストを受け取る
-      socket.on('user_post_hee_count', (data) => {
-        // console.info('--- へぇカウント受信 ---');
-        // console.info(data);
-
+      socket.on('post_hee_user', async (data) => {
         // 他のユーザーにへぇリクエストを送信
-        socket.emit('user_get_hee_count', {
-          heeCount: data.query.heeCount,
+
+        socket.data.heeCount = data.query.count;
+
+        fastify.io.emit('get_hee_user', {
+          heeUser: {
+            id: socket.data.userId,
+            count: socket.data.heeCount,
+          },
         });
+      });
+
+      socket.on('disconnect', async (reason) => {
+        console.log(`bye ${socket.handshake.query.name} reason: ${reason}`);
+        const disconnectedSockets = await fastify.io.fetchSockets();
+        const disconnectedJoiningUsers = disconnectedSockets.map(
+          (sock: Socket) => ({ ...sock.data }),
+        );
+        // すべてのクライアントに サーバーに接続しているすべてのクライアント情報を送信
+        fastify.io.emit('exit_user', disconnectedJoiningUsers);
       });
     });
   });
