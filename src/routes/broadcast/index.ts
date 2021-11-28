@@ -1,67 +1,106 @@
 import { FastifyPluginAsync } from 'fastify';
-import broadcastPlugin from './service';
-
-type PostBody = {
-  title: string;
-  scheduledStartTime: string;
-  token: string;
-};
-
-type PutBody = {
-  title?: string;
-  scheduledStartTime?: string;
-  status?: string;
-  archiveUrl?: string;
-  token: string;
-};
+import { broadcastServicePlugin } from './service';
+import { broadcastPreHandlerPlugin } from './preHandler';
+import {
+  broadcastParamsSchema,
+  broadcastPostBodySchema,
+  broadcastPutBodySchema,
+  BroadcastPostBody,
+  BroadcastPutBody,
+  broadcastListGetResponseSchema,
+  broadcastGetResponseSchema,
+  broadcastPostPutDeleteResponseSchema,
+} from './schema';
 
 const broadcast: FastifyPluginAsync = async (fastify): Promise<void> => {
-  // Broadcastプラグインを読み込む！
-  await fastify.register(broadcastPlugin);
+  // BroadcastのCRUD機能＋放送リスト取得機能プラグインを読み込む！
+  await fastify.register(broadcastServicePlugin);
+  // 管理者ではないユーザーが放送を作成・更新・削除しようとしたとき、403を返す。
+  // 指定した放送が存在しないとき、400を返す。
+  await fastify.register(broadcastPreHandlerPlugin);
 
   // 放送リスト取得機能
-  fastify.get('/', async (req, res) => {
-    const resultBroadcastList = await fastify.getBroadcastList();
-    res.send(resultBroadcastList);
-  });
+  fastify.get(
+    '/',
+    {
+      schema: {
+        response: {
+          '200': broadcastListGetResponseSchema,
+        },
+      },
+    },
+    async (req, res) => {
+      const resultBroadcastList = await fastify.getBroadcastList();
+      res.send(resultBroadcastList);
+    },
+  );
 
   // 放送情報取得
   fastify.get<{
     Params: { id: number };
-  }>(`/:id`, async (req, res) => {
-    const { id } = req.params;
-    const token = req?.headers?.authorization?.split(' ')[1] as string;
-    const resultBroadcastInfo = await fastify.getBroadcast({
-      id: Number(id),
-      token,
-    });
-    res.send(resultBroadcastInfo);
-  });
-
-  // 放送作成機能
-  fastify.post<{ Body: PostBody }>(`/`, async (req, res) => {
-    const { title, scheduledStartTime, token } = req.body;
-    const resultCreateBroadcastInfo = await fastify.createBroadcast({
-      title,
-      scheduledStartTime,
-      token,
-    });
-    res.send(resultCreateBroadcastInfo);
-  });
-
-  // 放送情報更新機能
-  fastify.put<{ Params: { id: number }; Body: PutBody }>(
+  }>(
     `/:id`,
+    {
+      schema: {
+        params: broadcastParamsSchema,
+        response: {
+          '200': broadcastGetResponseSchema,
+        },
+      },
+    },
     async (req, res) => {
       const { id } = req.params;
-      const { title, scheduledStartTime, status, archiveUrl, token } = req.body;
+      const resultBroadcastInfo = await fastify.getBroadcast({
+        id,
+        isAdmin: req.userInfo.isAdmin,
+        userId: req.userInfo.id,
+      });
+      res.send(resultBroadcastInfo);
+    },
+  );
+
+  // 放送作成機能
+  fastify.post<{ Body: BroadcastPostBody }>(
+    `/`,
+    {
+      schema: {
+        body: broadcastPostBodySchema,
+        response: {
+          '201': broadcastPostPutDeleteResponseSchema,
+        },
+      },
+    },
+    async (req, res) => {
+      const { title, scheduledStartTime } = req.body;
+      const resultCreateBroadcastInfo = await fastify.createBroadcast({
+        title,
+        scheduledStartTime,
+      });
+      res.status(201).send(resultCreateBroadcastInfo);
+    },
+  );
+
+  // 放送情報更新機能
+  fastify.put<{ Params: { id: number }; Body: BroadcastPutBody }>(
+    `/:id`,
+    {
+      schema: {
+        params: broadcastParamsSchema,
+        body: broadcastPutBodySchema,
+        response: {
+          '200': broadcastPostPutDeleteResponseSchema,
+        },
+      },
+    },
+    async (req, res) => {
+      const { id } = req.params;
+      const { title, scheduledStartTime, status, archiveUrl } = req.body;
       const resultUpdateBroadcastInfo = await fastify.updateBroadcast({
         id: Number(id),
         title,
         scheduledStartTime,
         status,
         archiveUrl,
-        token,
       });
       res.send(resultUpdateBroadcastInfo);
     },
@@ -70,15 +109,24 @@ const broadcast: FastifyPluginAsync = async (fastify): Promise<void> => {
   // 放送削除機能
   fastify.delete<{
     Params: { id: number };
-  }>(`/:id`, async (req, res) => {
-    const { id } = req.params;
-    const token = req?.headers?.authorization?.split(' ')[1] as string;
-    const resultDeleteBroadcastInfo = await fastify.deleteBroadcast({
-      id: Number(id),
-      token,
-    });
-    res.send(resultDeleteBroadcastInfo);
-  });
+  }>(
+    `/:id`,
+    {
+      schema: {
+        params: broadcastParamsSchema,
+        response: {
+          '200': broadcastPostPutDeleteResponseSchema,
+        },
+      },
+    },
+    async (req, res) => {
+      const { id } = req.params;
+      const resultDeleteBroadcastInfo = await fastify.deleteBroadcast({
+        id: Number(id),
+      });
+      res.send(resultDeleteBroadcastInfo);
+    },
+  );
 };
 
 export default broadcast;

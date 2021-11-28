@@ -23,7 +23,6 @@ const slack: FastifyPluginAsync = async (fastify): Promise<void> => {
       res.status(400).send({ error: 'not found id_token or access_token' });
       return;
     }
-    res.send(result);
 
     // id_token をデコードしてユーザー情報を取得
     const userInfo: OpenIDConnectUserInfoResponse = jwt_decode(result.id_token);
@@ -45,7 +44,9 @@ const slack: FastifyPluginAsync = async (fastify): Promise<void> => {
         image: userInfo.picture,
         token: result.access_token,
       },
-      update: {},
+      update: {
+        token: result.access_token,
+      },
     });
     res.send(registerUser);
   });
