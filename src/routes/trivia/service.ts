@@ -1,4 +1,4 @@
-import { Trivia } from '.prisma/client';
+import { Prisma, Trivia } from '.prisma/client';
 import { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
 
@@ -7,18 +7,18 @@ interface UpdateParams {
   content?: string;
   hee?: number;
   featured?: boolean;
-  token: string;
+  userId: string;
+  isAdmin: boolean;
 }
 
 interface CreateParams {
-  token: string;
+  userId: string;
   content: string;
   broadcastId: number;
 }
 
 interface DeleteParams {
   id: number;
-  token: string;
 }
 
 declare module 'fastify' {
@@ -38,38 +38,15 @@ declare module 'fastify' {
   }
 }
 
-const triviaPlugin: FastifyPluginAsync = async (fastify) => {
+export const triviaPlugin: FastifyPluginAsync = fp(async (fastify) => {
   // ---------------------- 放送情報更新 --------------------- //
 
   fastify.decorate('createTrivia', async (params: CreateParams) => {
-    // ユーザー情報を取得
-    const resultUserInfo = await fastify.prisma.user.findUnique({
-      where: { token: params.token },
-      include: {
-        Trivia: {
-          where: { broadcastId: params.broadcastId },
-        },
-      },
-    });
-
-    // ユーザーが存在しない場合エラー
-    if (!resultUserInfo) {
-      throw Error('not found user');
-    }
-    // ユーザーは複数のトリビアを投稿できない
-    if (resultUserInfo.Trivia.length !== 0) {
-      throw Error('create only trivia');
-    }
-    // ユーザーが管理者の場合、トリビアを投稿できない
-    if (resultUserInfo.isAdmin === true) {
-      throw Error('Cannot create trivia');
-    }
-
     // トリビア投稿
     const resultCreated = await fastify.prisma.trivia.create({
       data: {
         content: params.content,
-        userId: resultUserInfo.id,
+        userId: params.userId,
         broadcastId: params.broadcastId,
       },
     });
@@ -77,77 +54,27 @@ const triviaPlugin: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.decorate('updateTrivia', async (params: UpdateParams) => {
-    // ユーザー情報とユーザーが投稿したトリビアを取得
-    const resultUserInfo = await fastify.prisma.user.findUnique({
-      where: { token: params.token },
-      include: {
-        Trivia: {
-          where: { id: params.id },
-        },
-      },
-    });
-
-    if (!resultUserInfo) {
-      throw new Error('not found user');
-    }
-
     // ユーザーが管理者の場合、他のユーザーが投稿したトリビアの内容とへぇカウント、フィーチャーを変更できる
-    if (resultUserInfo.isAdmin === true) {
-      const resultUpdated = await fastify.prisma.trivia.update({
-        where: { id: params.id },
-        data: {
-          content: params.content,
-          hee: params.hee,
-          featured: params.featured
-        },
-      });
-      return resultUpdated;
-    }
-
-    // 指定したトリビアIDが、ユーザーが投稿したトリビアでない場合
-    if (resultUserInfo.Trivia.length === 0) {
-      throw new Error('Cannot update trivia for other users');
-    }
-
     // ユーザーの場合、トリビアの内容のみ変更できる
+    const updateData: Prisma.TriviaUpdateInput =
+      params.isAdmin === true
+        ? {
+            content: params.content,
+            hee: params.hee,
+            featured: params.featured,
+          }
+        : {
+            content: params.content,
+          };
+
     const resultUpdated = await fastify.prisma.trivia.update({
       where: { id: params.id },
-      data: {
-        content: params.content
-      },
+      data: updateData,
     });
     return resultUpdated;
   });
 
   fastify.decorate('deleteTrivia', async (params: DeleteParams) => {
-    // ユーザー情報とユーザーが投稿したトリビアを取得
-    const resultUserInfo = await fastify.prisma.user.findUnique({
-      where: { token: params.token },
-      include: {
-        Trivia: {
-          where: { id: params.id },
-        },
-      },
-    });
-
-    // ユーザーが存在しない場合エラー
-    if (!resultUserInfo) {
-      throw new Error('not found user trivia');
-    }
-
-    // ユーザーが管理者の場合、他のユーザーが投稿したトリビアを削除できる
-    if (resultUserInfo.isAdmin === true) {
-      const resultDeleted = await fastify.prisma.trivia.delete({
-        where: { id: params.id },
-      });
-      return resultDeleted;
-    }
-
-    // トリビアが存在しない場合エラー
-    if (resultUserInfo.Trivia.length === 0) {
-      throw new Error('not found trivia');
-    }
-
     // ユーザーがトリビアを投稿していたら、そのユーザーがトリビアを削除できる
     const resultDeleted = await fastify.prisma.trivia.delete({
       where: { id: params.id },
@@ -155,6 +82,4 @@ const triviaPlugin: FastifyPluginAsync = async (fastify) => {
 
     return resultDeleted;
   });
-};
-
-export default fp(triviaPlugin);
+});
