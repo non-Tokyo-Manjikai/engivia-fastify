@@ -1,13 +1,19 @@
-import s from "fluent-json-schema";
+import { Type, Static } from '@sinclair/typebox';
 
-export const bodyPostTriviaSchema = s.object()
-  .prop('content', s.string().maxLength(100).required())
-  .prop('broadcastId', s.number().minimum(1).required())
+export const triviaPostBodySchema = Type.Object({
+  content: Type.String({ maxLength: 100 }),
+  broadcastId: Type.Number({ minimum: 1 }),
+});
 
-export const bodyPutTriviaSchema = s.object()
-  .prop('content', s.string().maxLength(100))
-  .prop('featured', s.boolean())
-  .prop('hee', s.number().minimum(0).maximum(100))
+export const triviaPutBpdySchema = Type.Object({
+  content: Type.String({ maxLength: 100 }),
+  featured: Type.Boolean(),
+  hee: Type.Number({ minimum: 1, maximum: 100 }),
+});
 
-export const paramsDeleteTrivia = s.object()
-  .prop('id', s.number().minimum(1).required())
+export const triviaDeleteParamsSchema = Type.Object({
+  id: Type.Number({ minimum: 1 }),
+});
+
+export type TriviaPostBody = Static<typeof triviaPostBodySchema>;
+export type TriviaPutBody = Static<typeof triviaPutBpdySchema>;
