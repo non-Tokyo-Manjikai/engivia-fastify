@@ -2,22 +2,12 @@ import { FastifyPluginAsync } from 'fastify';
 import { triviaPlugin } from './service';
 import { triviaPreHandlerPlugin } from './preHandler';
 import {
-  bodyPostTriviaSchema,
-  bodyPutTriviaSchema,
-  paramsDeleteTrivia,
+  triviaPostBodySchema,
+  triviaPutBpdySchema,
+  triviaDeleteParamsSchema,
+  TriviaPostBody,
+  TriviaPutBody,
 } from './schema';
-
-type PostBody = {
-  content: string;
-  broadcastId: number;
-};
-
-type PutBody = {
-  content?: string;
-  hee?: number;
-  featured?: boolean;
-  token: string;
-};
 
 const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
   // Triviaプラグインを読み込む！
@@ -25,11 +15,11 @@ const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
   // 事前チェック
   await fastify.register(triviaPreHandlerPlugin);
 
-  fastify.post<{ Body: PostBody }>(
+  fastify.post<{ Body: TriviaPostBody }>(
     `/`,
     {
       schema: {
-        body: bodyPostTriviaSchema,
+        body: triviaPostBodySchema,
       },
     },
     async (req, res) => {
@@ -43,11 +33,11 @@ const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
     },
   );
 
-  fastify.put<{ Params: { id: number }; Body: PutBody }>(
+  fastify.put<{ Params: { id: number }; Body: TriviaPutBody }>(
     `/:id`,
     {
       schema: {
-        body: bodyPutTriviaSchema,
+        body: triviaPutBpdySchema,
       },
     },
     async (req, res) => {
@@ -67,7 +57,7 @@ const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
 
   fastify.delete<{ Params: { id: number } }>(
     `/:id`,
-    { schema: { params: paramsDeleteTrivia } },
+    { schema: { params: triviaDeleteParamsSchema } },
     async (req, res) => {
       const { id } = req.params;
       const resultDeleteTriviaInfo = await fastify.deleteTrivia({
