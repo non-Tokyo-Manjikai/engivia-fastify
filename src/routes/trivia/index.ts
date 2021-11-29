@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import triviaPlugin from './service';
+import { triviaPlugin } from './service';
 import { triviaPreHandlerPlugin } from './preHandler';
 import {
   bodyPostTriviaSchema,
