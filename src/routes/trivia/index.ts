@@ -5,6 +5,7 @@ import {
   triviaPostBodySchema,
   triviaPutBpdySchema,
   triviaDeleteParamsSchema,
+  triviaPostPutDeleteResponseSchema,
   TriviaPostBody,
   TriviaPutBody,
 } from './schema';
@@ -20,6 +21,7 @@ const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
     {
       schema: {
         body: triviaPostBodySchema,
+        response: { '201': triviaPostPutDeleteResponseSchema },
       },
     },
     async (req, res) => {
@@ -29,7 +31,7 @@ const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
         broadcastId,
         userId: req.userInfo.id,
       });
-      res.send(resultUpdateBroadcastInfo);
+      res.status(201).send(resultUpdateBroadcastInfo);
     },
   );
 
@@ -38,6 +40,7 @@ const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
     {
       schema: {
         body: triviaPutBpdySchema,
+        response: { '200': triviaPostPutDeleteResponseSchema },
       },
     },
     async (req, res) => {
@@ -57,7 +60,12 @@ const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
 
   fastify.delete<{ Params: { id: number } }>(
     `/:id`,
-    { schema: { params: triviaDeleteParamsSchema } },
+    {
+      schema: {
+        params: triviaDeleteParamsSchema,
+        response: { '200': triviaPostPutDeleteResponseSchema },
+      },
+    },
     async (req, res) => {
       const { id } = req.params;
       const resultDeleteTriviaInfo = await fastify.deleteTrivia({
