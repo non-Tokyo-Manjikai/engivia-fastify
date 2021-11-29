@@ -1,8 +1,15 @@
 import { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
 
+type triviaPostPutBpdy = {
+  content: string,
+  broadcastId: number,
+  hee: number,
+  featured: boolean,
+}
+
 export const triviaPreHandlerPlugin: FastifyPluginAsync = fp(async (fastify) => {
-  fastify.addHook<{ Params: { id: number }, Body: { content: string, broadcastId: number } }>(
+  fastify.addHook<{ Params: { id: number }, Body: triviaPostPutBpdy }>(
     'preHandler',
     async (req, res) => {
       // トリビアを作成するとき、既にトリビアが保存されているかチェックする
@@ -37,10 +44,15 @@ export const triviaPreHandlerPlugin: FastifyPluginAsync = fp(async (fastify) => 
 
         // 指定したIDが存在する場合
         if (resultTrivia) {
+          // 管理者ではないユーザーはへぇカウント、フィーチャーを更新できない
+          if (!req.userInfo.isAdmin && (req.body.featured !== undefined || req.body.hee !== undefined)) {
+            res.code(403);
+            throw new Error(`The user cannot update the featured and hee.`);
+          }
           // 管理者・投稿したユーザー本人の場合
           if (req.userInfo.isAdmin || resultTrivia.userId === req.userInfo.id) return;
           // 他のユーザーが投稿したエンジビアを更新・削除しようとしたとき
-          res.code(400);
+          res.code(403);
           throw new Error(`It is not possible to update or delete another user's endivia.`);
         }
 
