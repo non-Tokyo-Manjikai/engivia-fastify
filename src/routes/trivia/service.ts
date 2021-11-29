@@ -1,47 +1,31 @@
 import { Prisma, Trivia } from '.prisma/client';
 import { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
-
-interface UpdateParams {
-  id: number;
-  content?: string;
-  hee?: number;
-  featured?: boolean;
-  userId: string;
-  isAdmin: boolean;
-}
-
-interface CreateParams {
-  userId: string;
-  content: string;
-  broadcastId: number;
-}
-
-interface DeleteParams {
-  id: number;
-}
+import {
+  CreateTriviaParams,
+  UpdateTriviaParams,
+  DeleteTriviaParams,
+} from './type';
 
 declare module 'fastify' {
   interface FastifyInstance {
     createTrivia: {
       // eslint-disable-next-line no-unused-vars
-      (params: CreateParams): Promise<Trivia>;
+      (params: CreateTriviaParams): Promise<Trivia>;
     };
     updateTrivia: {
       // eslint-disable-next-line no-unused-vars
-      (params: UpdateParams): Promise<Trivia>;
+      (params: UpdateTriviaParams): Promise<Trivia>;
     };
     deleteTrivia: {
       // eslint-disable-next-line no-unused-vars
-      (params: DeleteParams): Promise<Trivia>;
+      (params: DeleteTriviaParams): Promise<Trivia>;
     };
   }
 }
 
 export const triviaPlugin: FastifyPluginAsync = fp(async (fastify) => {
-  // ---------------------- 放送情報更新 --------------------- //
-
-  fastify.decorate('createTrivia', async (params: CreateParams) => {
+  fastify.decorate('createTrivia', async (params: CreateTriviaParams) => {
     // トリビア投稿
     const resultCreated = await fastify.prisma.trivia.create({
       data: {
@@ -53,7 +37,7 @@ export const triviaPlugin: FastifyPluginAsync = fp(async (fastify) => {
     return resultCreated;
   });
 
-  fastify.decorate('updateTrivia', async (params: UpdateParams) => {
+  fastify.decorate('updateTrivia', async (params: UpdateTriviaParams) => {
     // ユーザーが管理者の場合、他のユーザーが投稿したトリビアの内容とへぇカウント、フィーチャーを変更できる
     // ユーザーの場合、トリビアの内容のみ変更できる
     const updateData: Prisma.TriviaUpdateInput =
@@ -74,12 +58,11 @@ export const triviaPlugin: FastifyPluginAsync = fp(async (fastify) => {
     return resultUpdated;
   });
 
-  fastify.decorate('deleteTrivia', async (params: DeleteParams) => {
+  fastify.decorate('deleteTrivia', async (params: DeleteTriviaParams) => {
     // ユーザーがトリビアを投稿していたら、そのユーザーがトリビアを削除できる
     const resultDeleted = await fastify.prisma.trivia.delete({
       where: { id: params.id },
     });
-
     return resultDeleted;
   });
 });
