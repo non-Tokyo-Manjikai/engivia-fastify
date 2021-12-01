@@ -1,62 +1,58 @@
 import { FastifyPluginAsync } from 'fastify';
-import triviaPlugin from './service';
+import { triviaPlugin } from './service';
+import { triviaPreHandlerPlugin } from './preHandler';
 import {
-  bodyPostTriviaSchema,
-  bodyPutTriviaSchema,
-  paramsDeleteTrivia,
+  triviaPostBodySchema,
+  triviaPutBpdySchema,
+  triviaDeleteParamsSchema,
+  triviaPostPutDeleteResponseSchema,
+  TriviaPostBody,
+  TriviaPutBody,
 } from './schema';
-
-type PostBody = {
-  content: string;
-  broadcastId: number;
-  token: string;
-};
-
-type PutBody = {
-  content?: string;
-  hee?: number;
-  featured?: boolean;
-  token: string;
-};
 
 const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
   // Triviaプラグインを読み込む！
   await fastify.register(triviaPlugin);
+  // 事前チェック
+  await fastify.register(triviaPreHandlerPlugin);
 
-  fastify.post<{ Body: PostBody }>(
+  fastify.post<{ Body: TriviaPostBody }>(
     `/`,
     {
       schema: {
-        body: bodyPostTriviaSchema,
+        body: triviaPostBodySchema,
+        response: { '201': triviaPostPutDeleteResponseSchema },
       },
     },
     async (req, res) => {
-      const { content, broadcastId, token } = req.body;
+      const { content, broadcastId } = req.body;
       const resultUpdateBroadcastInfo = await fastify.createTrivia({
         content,
         broadcastId,
-        token,
+        userId: req.userInfo.id,
       });
-      res.send(resultUpdateBroadcastInfo);
+      res.status(201).send(resultUpdateBroadcastInfo);
     },
   );
 
-  fastify.put<{ Params: { id: number }, Body: PutBody }>(
+  fastify.put<{ Params: { id: number }; Body: TriviaPutBody }>(
     `/:id`,
     {
       schema: {
-        body: bodyPutTriviaSchema,
+        body: triviaPutBpdySchema,
+        response: { '200': triviaPostPutDeleteResponseSchema },
       },
     },
     async (req, res) => {
       const { id } = req.params;
-      const { content, hee, featured, token } = req.body;
+      const { content, hee, featured } = req.body;
       const resultUpdateBroadcastInfo = await fastify.updateTrivia({
         id: Number(id),
         hee,
         content,
         featured,
-        token,
+        userId: req.userInfo.id,
+        isAdmin: req.userInfo.isAdmin,
       });
       res.send(resultUpdateBroadcastInfo);
     },
@@ -64,13 +60,16 @@ const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
 
   fastify.delete<{ Params: { id: number } }>(
     `/:id`,
-    { schema: { params: paramsDeleteTrivia } },
+    {
+      schema: {
+        params: triviaDeleteParamsSchema,
+        response: { '200': triviaPostPutDeleteResponseSchema },
+      },
+    },
     async (req, res) => {
       const { id } = req.params;
-      const token = req?.headers?.authorization?.split(' ')[1] as string;
       const resultDeleteTriviaInfo = await fastify.deleteTrivia({
         id: Number(id),
-        token,
       });
       res.send(resultDeleteTriviaInfo);
     },
