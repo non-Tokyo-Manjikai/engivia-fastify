@@ -2,11 +2,11 @@ import textToSpeech from '@google-cloud/text-to-speech';
 
 const client = new textToSpeech.TextToSpeechClient({
   projectId: 'ntm-engivia',
+  // 本番環境ではこのキーをどこに管理すべきか調べる必要がある
   keyFilename: 'gcs-token.json',
 });
 
-const getTitleCallAudio = async () => {
-  const text = 'こんにちは';
+export const getTitleCallAudio = async (text: string) => {
   const [response] = await client.synthesizeSpeech({
     input: { text },
     voice: { languageCode: 'ja-JP' },
@@ -17,9 +17,13 @@ const getTitleCallAudio = async () => {
   }
   const base64encoded = Buffer.from(response.audioContent).toString('base64');
   console.log(`base64encoded: ${base64encoded}`);
+  return base64encoded;
 }
 
-getTitleCallAudio();
+/*
+const base64Sound = getTitleCallAudio('こんにちは');
+console.log(base64Sound);
+*/
 
 /* response
 {
