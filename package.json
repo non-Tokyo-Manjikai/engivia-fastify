@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "dev": "ts-node-dev --transpile-only --exit-child src/index.ts"
+    "dev": "ts-node-dev --transpile-only --exit-child src/index.ts",
+    "build": "tsc",
+    "start": "node src/index.js"
   },
   "dependencies": {
     "@google-cloud/storage": "^5.15.3",
