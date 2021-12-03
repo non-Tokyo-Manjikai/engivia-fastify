@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "ts-node-dev --transpile-only --exit-child src/index.ts",
+    "prisma:generate": "prisma generate",
     "build": "tsc",
     "start": "node src/index.js"
   },

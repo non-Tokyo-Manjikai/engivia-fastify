@@ -10,6 +10,7 @@ RUN yarn
 
 COPY . /app
 
+RUN yarn prisma:generate
 RUN yarn build
 
 FROM node:14.17.0 as release
