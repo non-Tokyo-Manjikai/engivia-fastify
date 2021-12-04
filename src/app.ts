@@ -6,6 +6,8 @@ import fastifyIO from 'fastify-socket.io';
 import fastifyEnv from 'fastify-env';
 import s from 'fluent-json-schema';
 
+// デプロイテスト
+
 declare module 'fastify' {
   interface FastifyInstance {
     config: {
