@@ -34,6 +34,7 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
             name: data.query.name,
             image: data.query.image,
             content: data.query.content,
+            engiviaNumber: data.query.engiviaNumber,
           },
         });
       });
@@ -60,9 +61,7 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
       socket.on('disconnect', async (reason) => {
         console.log(`bye ${socket.handshake.query.name} reason: ${reason}`);
         const disconnectedSockets = await fastify.io.fetchSockets();
-        const disconnectedJoiningUsers = disconnectedSockets.map(
-          (sock: Socket) => ({ ...sock.data }),
-        );
+        const disconnectedJoiningUsers = disconnectedSockets.map((sock: Socket) => ({ ...sock.data }));
         // すべてのクライアントに サーバーに接続しているすべてのクライアント情報を送信
         fastify.io.emit('exit_user', disconnectedJoiningUsers);
       });
