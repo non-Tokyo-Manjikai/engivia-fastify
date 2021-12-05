@@ -17,6 +17,8 @@ const slack: FastifyPluginAsync = async (fastify): Promise<void> => {
     const result = await web.openid.connect.token({
       client_id: fastify.config.SLACK_CLIENT_ID || '',
       client_secret: fastify.config.SLACK_CLIENT_SECRET || '',
+      redirect_uri: fastify.config.SLACK_REDIRECT_URL,
+      grant_type: 'authorization_code',
       code: req.query.code,
     });
     if (!result.id_token || !result.access_token) {
