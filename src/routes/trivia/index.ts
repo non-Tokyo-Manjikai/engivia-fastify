@@ -16,6 +16,10 @@ const trivia: FastifyPluginAsync = async (fastify): Promise<void> => {
   // 事前チェック
   await fastify.register(triviaPreHandlerPlugin);
 
+  fastify.get('/:id', async (req, res) => {
+    res.send(req.trivia);
+  })
+
   fastify.post<{ Body: TriviaPostBody }>(
     `/`,
     {

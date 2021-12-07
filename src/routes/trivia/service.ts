@@ -1,11 +1,7 @@
 import { Prisma, Trivia } from '.prisma/client';
 import { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
-import {
-  CreateTriviaParams,
-  UpdateTriviaParams,
-  DeleteTriviaParams,
-} from './type';
+import { CreateTriviaParams, UpdateTriviaParams, DeleteTriviaParams } from './type';
 
 declare module 'fastify' {
   interface FastifyInstance {
