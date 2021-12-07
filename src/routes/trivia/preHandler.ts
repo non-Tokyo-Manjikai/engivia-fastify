@@ -1,3 +1,4 @@
+import { Trivia } from '.prisma/client';
 import { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
 
@@ -8,8 +9,47 @@ type triviaPostPutBpdy = {
   featured: boolean;
 };
 
+declare module 'fastify' {
+  interface FastifyRequest {
+    trivia: Trivia & {
+      User: {
+        id: string;
+        name: string;
+        image: string;
+      };
+    };
+  }
+}
+
 export const triviaPreHandlerPlugin: FastifyPluginAsync = fp(async (fastify) => {
   fastify.addHook<{ Params: { id: number }; Body: triviaPostPutBpdy }>('preHandler', async (req, res) => {
+    if (req.method === 'GET') {
+      const resultTrivia = await fastify.prisma.trivia.findFirst({
+        where: { id: Number(req.params.id) },
+        include: {
+          User: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+            },
+          },
+        },
+      });
+      if (!resultTrivia) {
+        res.code(400);
+        throw new Error('Engivia not found.');
+      }
+
+      req.trivia = resultTrivia;
+      if (req.userInfo.isAdmin === true) return;
+
+      // フィーチャー前の他のユーザーが投稿したトリビアは取得することができない
+      if (req.userInfo.id !== resultTrivia.User.id && !resultTrivia.featured) {
+        res.code(403);
+        throw new Error('Engivia not found.');
+      }
+    }
     // トリビアを作成するとき、既にトリビアが保存されているかチェックする
     if (req.method === 'POST') {
       // 管理者はエンジビアを投稿できない
