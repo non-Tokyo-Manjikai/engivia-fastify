@@ -11,6 +11,7 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
       socket.data.userId = socket.handshake.query.id;
       socket.data.name = socket.handshake.query.name;
       socket.data.image = socket.handshake.query.image;
+      socket.data.isAdmin = socket.handshake.query.isAdmin;
       socket.data.heeCount = 0;
 
       const sockets = await fastify.io.fetchSockets();
@@ -19,7 +20,8 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
           id: sock.data.userId,
           name: sock.data.name,
           image: sock.data.image,
-          heeCount: sock.data.heeCount,
+          heeCount: Number(sock.data.heeCount),
+          isAdmin: sock.data.isAdmin === 'true' ? true : false,
         };
       });
       await fastify.io.emit('get_connect_user', joiningUsers);
@@ -34,7 +36,7 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
             name: data.query.name,
             image: data.query.image,
             content: data.query.content,
-            engiviaNumber: data.query.engiviaNumber,
+            engiviaNumber: Number(data.query.engiviaNumber),
           },
         });
       });
