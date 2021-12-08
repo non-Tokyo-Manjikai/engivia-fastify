@@ -22,10 +22,19 @@ declare module 'fastify' {
 }
 
 export const triviaPreHandlerPlugin: FastifyPluginAsync = fp(async (fastify) => {
-  fastify.addHook<{ Params: { id: number }; Body: triviaPostPutBpdy }>('preHandler', async (req, res) => {
+  fastify.addHook<{
+    Params: { id: number };
+    Querystring: { broadcastId: string };
+    Body: triviaPostPutBpdy;
+  }>('preHandler', async (req, res) => {
     if (req.method === 'GET') {
       const resultTrivia = await fastify.prisma.trivia.findFirst({
-        where: { id: Number(req.params.id) },
+        where: {
+          AND: [
+            { broadcastId: Number(req.query.broadcastId) },
+            { userId: req.userInfo.id },
+          ],
+        },
         include: {
           User: {
             select: {
@@ -42,13 +51,14 @@ export const triviaPreHandlerPlugin: FastifyPluginAsync = fp(async (fastify) => 
       }
 
       req.trivia = resultTrivia;
-      if (req.userInfo.isAdmin === true) return;
 
-      // フィーチャー前の他のユーザーが投稿したトリビアは取得することができない
+      /*
+      // フィーチャー前のトリビアは他のユーザーから取得することはできない。
       if (req.userInfo.id !== resultTrivia.User.id && !resultTrivia.featured) {
         res.code(403);
-        throw new Error('Engivia not found.');
+        throw new Error('Trivia before the main story cannot be obtained from other users.');
       }
+      */
     }
     // トリビアを作成するとき、既にトリビアが保存されているかチェックする
     if (req.method === 'POST') {
