@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
-import { Socket } from 'socket.io';
+import { RemoteSocket, Socket } from 'socket.io';
+import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { getTitleCallAudio } from '../../lib/textToSpeech';
 
 const live: FastifyPluginAsync = async (fastify): Promise<void> => {
@@ -16,7 +17,7 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
       socket.data.heeCount = 0;
 
       const sockets = await fastify.io.fetchSockets();
-      const joiningUsers = sockets.map((sock: Socket) => {
+      const joiningUsers = sockets.map((sock: RemoteSocket<DefaultEventsMap>) => {
         return {
           id: sock.data.userId,
           name: sock.data.name,
@@ -65,7 +66,9 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
       socket.on('disconnect', async (reason) => {
         console.log(`bye ${socket.handshake.query.name} reason: ${reason}`);
         const disconnectedSockets = await fastify.io.fetchSockets();
-        const disconnectedJoiningUsers = disconnectedSockets.map((sock: Socket) => ({ ...sock.data }));
+        const disconnectedJoiningUsers = disconnectedSockets.map((sock: RemoteSocket<DefaultEventsMap>) => ({
+          ...sock.data,
+        }));
         // すべてのクライアントに サーバーに接続しているすべてのクライアント情報を送信
         fastify.io.emit('exit_user', disconnectedJoiningUsers);
       });
