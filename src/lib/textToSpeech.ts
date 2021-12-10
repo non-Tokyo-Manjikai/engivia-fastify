@@ -1,10 +1,13 @@
 import textToSpeech from '@google-cloud/text-to-speech';
 
-const client = new textToSpeech.TextToSpeechClient({
-  projectId: 'ntm-engivia',
-  // 本番環境ではこのキーをどこに管理すべきか調べる必要がある
-  keyFilename: 'gcs-token.json',
-});
+const client =
+  process.env.NODE_ENV === 'production'
+    ? new textToSpeech.TextToSpeechClient()
+    : new textToSpeech.TextToSpeechClient({
+        projectId: 'ntm-engivia',
+        // 本番環境ではこのキーをどこに管理すべきか調べる必要がある
+        keyFilename: 'gcs-token.json',
+      });
 
 export const getTitleCallAudio = async (text: string) => {
   const [response] = await client.synthesizeSpeech({
