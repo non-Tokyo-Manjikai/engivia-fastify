@@ -10,7 +10,7 @@ export const getTitleCallAudio = async (text: string) => {
   const [response] = await client.synthesizeSpeech({
     input: { text },
     voice: { languageCode: 'ja-JP' },
-    audioConfig: { audioEncoding: 'MP3' }
+    audioConfig: { audioEncoding: 'MP3', pitch: 5.0 },
   });
   if (!response.audioContent) {
     throw new Error('synthesizeSpeech error');
@@ -18,7 +18,7 @@ export const getTitleCallAudio = async (text: string) => {
   const base64encoded = Buffer.from(response.audioContent).toString('base64');
   console.log(`base64encoded: ${base64encoded}`);
   return base64encoded;
-}
+};
 
 /*
 const base64Sound = getTitleCallAudio('こんにちは');
