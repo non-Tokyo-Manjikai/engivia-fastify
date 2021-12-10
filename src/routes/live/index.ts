@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { Socket } from 'socket.io';
+import { getTitleCallAudio } from '../../lib/textToSpeech';
 
 const live: FastifyPluginAsync = async (fastify): Promise<void> => {
   // liveプラグインを読み込む！
@@ -27,8 +28,8 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
       await fastify.io.emit('get_connect_user', joiningUsers);
 
       // 管理者がタイトルコールした時、エンジビア情報を受け取る
-      socket.on('post_title_call', (data) => {
-        console.info(data);
+      socket.on('post_title_call', async (data) => {
+        const sound = await getTitleCallAudio(data.query.content);
         // 受け取ったエンジビア情報をユーザーに送信
         fastify.io.emit('get_title_call', {
           engivia: {
@@ -37,6 +38,7 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
             image: data.query.image,
             content: data.query.content,
             engiviaNumber: Number(data.query.engiviaNumber),
+            heeSound: sound,
           },
         });
       });
