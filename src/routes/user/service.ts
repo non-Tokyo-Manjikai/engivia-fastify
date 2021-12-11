@@ -3,25 +3,28 @@ import { FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
 import { Storage } from '@google-cloud/storage';
 
-const storage = new Storage({
-  projectId: 'ntm-engivia',
-  keyFilename: 'gcs-token.json',
-});
+const storage =
+  process.env.NODE_ENV === 'production'
+    ? new Storage()
+    : new Storage({
+        projectId: 'ntm-engivia',
+        keyFilename: 'gcs-token.json',
+      });
 
 type UpdateParams = {
   id: string;
   name?: string;
   image?: string;
-}
+};
 
 type DeleteParams = {
   id: string;
-}
+};
 
 type UploadParams = {
   id: string;
   base64: string;
-}
+};
 
 type UpdatedUser = {
   id: string;
@@ -65,31 +68,25 @@ const userPlugin: FastifyPluginAsync = async (fastify) => {
   });
 
   // ---------------------- ユーザー情報削除 --------------------- //
-  fastify.decorate(
-    'deleteUser',
-    async (params: DeleteParams): Promise<User> => {
-      if (!params.id) {
-        throw new Error(`Specify id`);
-      }
+  fastify.decorate('deleteUser', async (params: DeleteParams): Promise<User> => {
+    if (!params.id) {
+      throw new Error(`Specify id`);
+    }
 
-      // 保存されている画像を削除
-      const file = storage.bucket('users_icon').file(`${params.id}.png`);
-      await file.delete({ ignoreNotFound: true });
+    // 保存されている画像を削除
+    const file = storage.bucket('users_icon').file(`${params.id}.png`);
+    await file.delete({ ignoreNotFound: true });
 
-      // ユーザー情報とユーザーが投稿したトリビアを全て削除
-      const deleteTrivia = fastify.prisma.trivia.deleteMany({
-        where: { userId: params.id },
-      });
-      const deleteUser = fastify.prisma.user.delete({
-        where: { id: params.id },
-      });
-      const deletedResult = await fastify.prisma.$transaction([
-        deleteTrivia,
-        deleteUser,
-      ]);
-      return deletedResult[1];
-    },
-  );
+    // ユーザー情報とユーザーが投稿したトリビアを全て削除
+    const deleteTrivia = fastify.prisma.trivia.deleteMany({
+      where: { userId: params.id },
+    });
+    const deleteUser = fastify.prisma.user.delete({
+      where: { id: params.id },
+    });
+    const deletedResult = await fastify.prisma.$transaction([deleteTrivia, deleteUser]);
+    return deletedResult[1];
+  });
 
   // ---------------------- ユーザーアイコンアップロード --------------------- //
   fastify.decorate('uploadIcon', async (params: UploadParams): Promise<string> => {
