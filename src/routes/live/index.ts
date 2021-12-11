@@ -15,7 +15,6 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
       socket.data.image = socket.handshake.query.image;
       socket.data.isAdmin = socket.handshake.query.isAdmin;
       socket.data.heeCount = 0;
-
       console.log(`welcome ${socket.handshake.query.name} id: ${socket.id}`);
 
       const sockets = await fastify.io.fetchSockets();
@@ -68,10 +67,15 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
       socket.on('disconnect', async (reason) => {
         console.log(`bye ${socket.handshake.query.name} reason: ${reason}`);
         const disconnectedSockets = await fastify.io.fetchSockets();
-        const disconnectedJoiningUsers = disconnectedSockets.map((sock: RemoteSocket<DefaultEventsMap>) => ({
-          ...sock.data,
-        }));
-        console.log(socket.id);
+        const disconnectedJoiningUsers = disconnectedSockets.map((sock: RemoteSocket<DefaultEventsMap>) => {
+          return {
+            id: sock.data.userId,
+            name: sock.data.name,
+            image: sock.data.image,
+            heeCount: Number(sock.data.heeCount),
+            isAdmin: sock.data.isAdmin === 'true' ? true : false,
+          };
+        });
         // すべてのクライアントに サーバーに接続しているすべてのクライアント情報を送信
         fastify.io.emit('exit_user', disconnectedJoiningUsers);
       });
