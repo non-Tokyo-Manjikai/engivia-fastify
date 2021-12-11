@@ -16,6 +16,9 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
       socket.data.isAdmin = socket.handshake.query.isAdmin;
       socket.data.heeCount = 0;
 
+      console.log(socket.id);
+      console.log(socket.name);
+
       const sockets = await fastify.io.fetchSockets();
       const joiningUsers = sockets.map((sock: RemoteSocket<DefaultEventsMap>) => {
         return {
@@ -69,6 +72,7 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
         const disconnectedJoiningUsers = disconnectedSockets.map((sock: RemoteSocket<DefaultEventsMap>) => ({
           ...sock.data,
         }));
+        console.log(socket.id);
         // すべてのクライアントに サーバーに接続しているすべてのクライアント情報を送信
         fastify.io.emit('exit_user', disconnectedJoiningUsers);
       });
