@@ -16,8 +16,7 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
       socket.data.isAdmin = socket.handshake.query.isAdmin;
       socket.data.heeCount = 0;
 
-      console.log(socket.id);
-      console.log(socket.name);
+      console.log(`welcome ${socket.handshake.query.name} id: ${socket.id}`);
 
       const sockets = await fastify.io.fetchSockets();
       const joiningUsers = sockets.map((sock: RemoteSocket<DefaultEventsMap>) => {
