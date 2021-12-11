@@ -48,6 +48,9 @@ export const broadcastServicePlugin: FastifyPluginAsync = fp(async (fastify) => 
           status: true,
           _count: { select: { Trivia: true } },
         },
+        orderBy: {
+          scheduledStartTime: `desc`,
+        }
       });
       return resultBroadcastList;
     },
