@@ -71,6 +71,8 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
 
       socket.on('disconnect', async (reason) => {
         console.log(`bye ${socket.handshake.query.name} reason: ${reason}`);
+        // 切断されたソケットが消えてないのかもしれないため、disconnectをする。（これでいいかわからん）
+        socket.disconnect(true)
         const disconnectedSockets = await fastify.io.fetchSockets();
         const disconnectedJoiningUsers = disconnectedSockets.map((sock: RemoteSocket<DefaultEventsMap>) => {
           return {
