@@ -1,47 +1,23 @@
-import { PrismaClient } from "@prisma/client";
-import fastify from "fastify";
+import Fastify from "fastify";
+import { app } from "./app";
 
-const prisma = new PrismaClient();
-const app = fastify();
-const port = process.env.PORT || "3000";
+const FASTIFY_PORT = Number(process.env.PORT) || 8080;
 
-app.get("/", async (req, res) => {
-  return { hello: "world!!!" };
-});
-
-app.post<{
-  Body: { name: string | undefined; email: string };
-}>(`/signup`, async (req, res) => {
-  const { name, email } = req.body;
-
-  const result = await prisma.user.create({
-    data: {
-      name,
-      email,
+async function start() {
+  const fastify = Fastify({
+    logger: {
+      prettyPrint: true,
+      level: "info",
     },
+    bodyLimit: 1048576 * 5 // 5MiB
   });
-  res.send(result);
+  fastify.register(app);
+
+  await fastify.listen(FASTIFY_PORT, "0.0.0.0");
+  fastify.log.info(`Fastify server running on port ${FASTIFY_PORT} in ${process.env.NODE_ENV || "development"}`);
+}
+
+start().catch((err) => {
+  console.error(err);
+  process.exit(1);
 });
-
-app.get<{
-  Params: { id: number };
-}>(`/user/:id`, async (req, res) => {
-  const { id } = req.params;
-
-  const post = await prisma.user.findUnique({
-    where: { id: Number(id) },
-  });
-  res.send(post);
-});
-
-// Run the server!
-const start = async () => {
-  try {
-    await app.listen(port, '0.0.0.0');
-    console.log(`🚀 Server ready at: http://localhost:${port}`);
-  } catch (err) {
-    app.log.error(err);
-    process.exit(1);
-  }
-};
-start();

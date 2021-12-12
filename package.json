@@ -1,13 +1,29 @@
 {
-  "name": "rest-express",
-  "version": "1.0.0",
+  "name": "engivia-fastify",
+  "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "dev": "ts-node-dev --poll --respawn --transpile-only --no-deps --exit-child src/index.ts"
+    "dev": "ts-node-dev --transpile-only --exit-child src/index.ts",
+    "prisma:generate": "prisma generate",
+    "build": "tsc",
+    "start": "node src/index.js"
   },
   "dependencies": {
-    "@prisma/client": "3.2.1",
-    "fastify": "3.22.0"
+    "@google-cloud/storage": "^5.15.3",
+    "@google-cloud/text-to-speech": "^3.3.1",
+    "@prisma/client": "^3.6.0",
+    "@sinclair/typebox": "^0.20.5",
+    "@slack/web-api": "^6.4.0",
+    "fastify": "3.22.0",
+    "fastify-autoload": "^3.9.0",
+    "fastify-cors": "^6.0.2",
+    "fastify-env": "^2.1.1",
+    "fastify-plugin": "^3.0.0",
+    "fastify-socket.io": "^2.0.1",
+    "fluent-json-schema": "^3.0.1",
+    "jwt-decode": "^3.1.2",
+    "pino-pretty": "^7.1.0",
+    "socket.io": "^4.3.1"
   },
   "devDependencies": {
     "@types/node": "14.17.21",
@@ -15,7 +31,7 @@
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.0",
     "prettier": "^2.4.1",
-    "prisma": "3.2.1",
+    "prisma": "^3.6.0",
     "ts-node": "10.3.0",
     "ts-node-dev": "^1.1.8",
     "typescript": "4.4.3"
