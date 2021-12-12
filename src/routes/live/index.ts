@@ -64,6 +64,11 @@ const live: FastifyPluginAsync = async (fastify): Promise<void> => {
         });
       });
 
+      // 管理者からのイベントを受け取り、放送終了イベントをユーザーに送信
+      socket.on('finish_live', () => {
+        fastify.io.emit('finish_live_to_client');
+      })
+
       socket.on('disconnect', async (reason) => {
         console.log(`bye ${socket.handshake.query.name} reason: ${reason}`);
         const disconnectedSockets = await fastify.io.fetchSockets();
